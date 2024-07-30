@@ -1,0 +1,6 @@
+python_version==3.11
+python-dotenv==1.0.1
+torchaudio==2.4.0
+torchvision==0.19.0+cu11
+torchvision==0.19.0+cu11
+whisperx @ git+https://github.com/m-bain/whisperx.git@58f00339af7dcc9705ef49d97a1f40764b7cf555
