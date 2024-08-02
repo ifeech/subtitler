@@ -8,7 +8,22 @@ from dotenv import dotenv_values
 config = dotenv_values(".env")
 
 
-def transcribe_video(videoPath):
+video_extensions = {
+    ".mp4",
+    ".avi",
+    ".mov",
+    ".mkv",
+    ".flv",
+    ".wmv",
+    ".webm",
+    ".mpeg",
+    ".mpg",
+    ".m4v",
+    ".3gp",
+}
+
+
+def transcribe_video(videoPath: str) -> list:
     model = whisperx.load_model(
         config["MODEL"], device=config["DEVICE"], compute_type=config["COMPUTE_TYPE"]
     )
@@ -34,15 +49,16 @@ def transcribe_video(videoPath):
     return result["segments"]
 
 
-def create_subtitles(subtitlesName, segments):
-    subtitlesName = os.path.join(subtitlesName)
+def create_subtitles(videoPath: str, segments: list):
+    subtitlesName = change_extension_to_srt(videoPath)
 
     # if srt file exists, delete it
     if os.path.exists(subtitlesName):
         os.remove(subtitlesName)
+
     for index, segment in enumerate(segments):
         startTime = str(0) + str(timedelta(seconds=int(segment["start"]))) + ",000"
-        endTime = str(0) + str(timedelta(seconds=int(segment["end"]))) + ",700"
+        endTime = str(0) + str(timedelta(seconds=int(segment["end"]))) + ",300"
         text = segment["text"].strip()
 
         subtitle = f"{index + 1}\n{startTime} --> {endTime}\n{text}\n\n"
@@ -50,17 +66,34 @@ def create_subtitles(subtitlesName, segments):
         with open(subtitlesName, "a", encoding="utf-8") as srtFile:
             srtFile.write(subtitle)
 
-    return subtitlesName
+    print(f"\nSubtitles has been created: '{subtitlesName}'\n")
 
 
-def main(videoPath):
-    segments = transcribe_video(videoPath)
+def change_extension_to_srt(videoPath):
+    base = os.path.splitext(videoPath)[0]
+    newPath = base + ".srt"
 
-    subtitlesName = videoPath[:-4] + "_subtitles.srt"
+    return os.path.join(newPath)
 
-    print(
-        f"***Subtitles has been created: {create_subtitles(subtitlesName, segments)}***"
-    )
+
+def is_video_file(path: str):
+    _, ext = os.path.splitext(path)
+
+    return ext.lower() in video_extensions
+
+
+def main(path: str):
+    if os.path.isfile(path) and is_video_file(path):
+        segments = transcribe_video(path)
+        create_subtitles(path, segments)
+    elif os.path.isdir(path):
+        for filename in os.listdir(path):
+            videoPath = os.path.join(path, filename)
+            if os.path.isfile(videoPath) and is_video_file(videoPath):
+                segments = transcribe_video(videoPath)
+                create_subtitles(videoPath, segments)
+    else:
+        print(f"'{path}' is not a video file or a directory.")
 
 
 if __name__ == "__main__":

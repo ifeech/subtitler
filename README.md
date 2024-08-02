@@ -7,6 +7,7 @@ Under the hood [whisperx](https://github.com/m-bain/whisperX)
 ## Function
 
 - Create .srt file based on video
+- Creating subtitles for all videos in a folder
 - Support various languages
 
 ## Installation
@@ -26,4 +27,6 @@ Under the hood [whisperx](https://github.com/m-bain/whisperX)
 
 **.env.example** -> **.env** and specify values for environment variables.
 
-```python main.py --path <path_to_video_file>```
+```python main.py --path "<path_to_video_file(s)>"```
+
+-p (--path) You can specify the path to the file or the path to the video folder.
