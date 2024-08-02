@@ -3,33 +3,31 @@ import os
 import whisperx
 
 from datetime import timedelta
-from dotenv import load_dotenv
+from dotenv import dotenv_values
 
-load_dotenv()
-
-MODEL = os.getenv("MODEL", "large-v2")
-BATCH_SIZE = int(os.getenv("BATCH_SIZE", 32))
-COMPUTE_TYPE = os.getenv("COMPUTE_TYPE", "float16")
-DEVICE = os.getenv("DEVICE", "cpu")
-LANGUAGE = os.getenv("LANGUAGE", "en")
+config = dotenv_values(".env")
 
 
 def transcribe_video(videoPath):
-    model = whisperx.load_model(MODEL, device=DEVICE, compute_type=COMPUTE_TYPE)
+    model = whisperx.load_model(
+        config["MODEL"], device=config["DEVICE"], compute_type=config["COMPUTE_TYPE"]
+    )
     audio = whisperx.load_audio(videoPath)
 
-    transcribedText = model.transcribe(audio, batch_size=BATCH_SIZE, language=LANGUAGE)
+    transcribedText = model.transcribe(
+        audio, batch_size=int(config["BATCH_SIZE"]), language=config["LANGUAGE"]
+    )
 
     # sync subtitles
     modelAlign, metadata = whisperx.load_align_model(
-        language_code=transcribedText["language"], device=DEVICE
+        language_code=transcribedText["language"], device=config["DEVICE"]
     )
     result = whisperx.align(
         transcribedText["segments"],
         modelAlign,
         metadata,
         audio,
-        DEVICE,
+        config["DEVICE"],
         return_char_alignments=False,
     )
 
